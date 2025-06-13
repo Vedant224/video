@@ -1,0 +1,24 @@
+{
+  "name": "video",
+  "version": "1.0.0",
+  "description": "video applicatio ",
+  "keywords": [
+    "javascript",
+    "backend"
+  ],
+  "homepage": "https://github.com/Vedant224/video#readme",
+  "bugs": {
+    "url": "https://github.com/Vedant224/video/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vedant224/video.git"
+  },
+  "license": "ISC",
+  "author": "vedant",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
