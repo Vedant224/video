@@ -14,11 +14,11 @@ const registerUser = asyncHandler(async (req, res) => {
         fullName,
         email,
         username,
-        passsword
+        password
     } = req.body
 
     if (
-        [fullName, email, username, passsword].some((field) =>
+        [fullName, email, username, password].some((field) =>
             field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
@@ -36,7 +36,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const avatarImage = req.files?.coverImage[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar file is required")
@@ -49,16 +49,16 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is required")
     }
 
-    User.create({
+    const user = await User.create({
         fullName,
         avatar:avatar.url,
         coverImage:coverImage?.url || "",
         email,
-        passsword,
-        username: username.toLowerCase()
+        password,
+        username: username.toLowerCase(),
     })
 
-    const createdUser = await User.findById(username._id).select(
+    const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
 
