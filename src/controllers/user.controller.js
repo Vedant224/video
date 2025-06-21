@@ -8,6 +8,22 @@ import {
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+const generateAcessAndRefreshTokens = async (userId)=>{
+    try{
+        const user = await User.findById(userId)
+        const accessToken =user.generateAccessTokens()
+        const refreshToken = user.generateRefreshTokens()
+
+        user.refreshToken = refreshToken
+        await user.save({validateBeforeSave: false})
+
+        return {accessToken,refreshToken}
+        
+    } catch(error){
+        throw new ApiError(500, "Something went wrong while generating refres Token")
+    }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
 
     const {
@@ -40,7 +56,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     let coverImageLocalPath;
     if(req.files && Array.isArray(req.files.coverImage)&& req.files.coverImage.length > 0){
-        coverImageLocalPath = req.files.coverImage[0].path;
+        coverImageLocalPath = req.files.coverImage[0].path; 
     }
 
     if(!avatarLocalPath){
@@ -77,6 +93,52 @@ const registerUser = asyncHandler(async (req, res) => {
 
 })
 
+const loginUser = asyncHandler(async (req,res)=>{
+
+    const {email, username, password} = req.body
+    if(!username || !email){
+        throw new ApiError(400, "username or password is required")
+    }
+
+    User.findOne({
+        $or: [{username}, {email}]
+    })
+
+    if (!user) {
+        throw new ApiError(404, "User does not exist")
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid){
+        throw new ApiError(401, " Invalid uder credentials")
+    }
+
+    const {accessToken,refreshToken} =  await generateAcessAndRefreshTokens(user._id)
+    
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    const options = {
+        httpOnly:true,
+        secure:true
+    }
+
+    return res 
+    .status(200)
+    .cookie("accessToken" ,accessToken, options)
+    .cookie("refreshToken", refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser,accessToken,refreshToken
+            }
+        )
+    )
+
+})
+
 export {
-    registerUser
+    registerUser,
+    loginUser
 }
