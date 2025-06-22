@@ -132,10 +132,15 @@ const loginUser = asyncHandler(async (req,res)=>{
             200,
             {
                 user: loggedInUser,accessToken,refreshToken
-            }
+            },
+            "User logged in sucessfully"
         )
     )
 
+})
+
+const logoutUser = asyncHandler(async(req,res)=>{
+    User.findById   
 })
 
 export {
