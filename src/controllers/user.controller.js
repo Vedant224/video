@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import {
     asyncHandler
 } from "../utils/asyncHandler.js";
@@ -112,10 +113,10 @@ const loginUser = asyncHandler(async (req, res) => {
         username,
         password
     } = req.body
-    //console.log(email);
+    console.log(email);
 
     if (!username && !email) {
-        throw new ApiError(400, "username or password is required")
+        throw new ApiError(400, "username or email is required")
     }
 
     const user = await User.findOne({
@@ -169,7 +170,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     User.findByIdAndUpdate(
         req.user._id, {
             $set: {
-                refreshToken: undefined
+                refreshToken: 1
             }
         }, {
             new: true
@@ -358,13 +359,14 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         throw new ApiError(400, "username is missing")
     }
 
-    const channel = await User.aggregate([{
+    const channel = await User.aggregate([
+        {
             $match: {
                 username: username?.toLowerCase()
             }
         },
         {
-            $loopup: {
+            $lookup: {
                 from: "subscriptions",
                 localField: "_id",
                 foreignField: "channel",
@@ -372,7 +374,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             }
         },
         {
-            $loopup: {
+            $lookup: {
                 from: "subscriptions",
                 localField: "_id",
                 foreignField: "subscriber",
@@ -385,7 +387,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                     $size: "$subscribers"
                 },
                 channelsSubscribedToCount: {
-                    $size: "subscribedTo"
+                    $size: "$subscribedTo"
                 },
                 isSubscribed: {
                     $cond: {
@@ -417,8 +419,8 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     }
 
     return res
-        .status(200),
-        json(new ApiResponse(200, channel[0], "User channel fetched successfully"))
+        .status(200)
+        .json(new ApiResponse(200, channel[0], "User channel fetched successfully"))
 
 })
 
@@ -450,8 +452,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                         }
                     },
                     {
-                        $addFields:{
-                            owner:{
+                        $addFields: {
+                            owner: {
                                 $first: "$owner"
                             }
                         }
@@ -462,8 +464,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     ])
 
     return res
-    .status(200)
-    .json(new ApiResponse(200,user[0].watchHistory,"Watch History fetched sucessfully"))
+        .status(200)
+        .json(new ApiResponse(200, user[0].watchHistory, "Watch History fetched sucessfully"))
 })
 
 export {

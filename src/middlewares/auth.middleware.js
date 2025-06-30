@@ -8,6 +8,9 @@ import jwt from "jsonwebtoken"
 import {
     User
 } from "../models/user.model.js"
+import {
+    ApiError
+} from "../utils/ApiError.js";
 
 export const verifyJWT = asyncHandler(async (req, _, next) => {
     try {
@@ -26,7 +29,7 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
 
         req.user = user;
         next()
-    }catch (errror){
+    } catch (error) {
         throw new ApiError(401, error?.message || "Invalid access token")
     }
 
